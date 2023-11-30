@@ -1,0 +1,30 @@
+name: main
+
+on:
+  push:
+    branches: "*"
+    tags: "*"
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: set-up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "temurin"
+          cache: maven
+      - name: package
+        run: mvn -B -ntp package
+      - name: "upload jar"
+        uses: actions/upload-artifact@v3
+        with:
+          name: "${{ github.event.repository.name }}-${{ github.sha }}.zip"
+          path: target/ctp-anon-cli*.jar
+          if-no-files-found: error
