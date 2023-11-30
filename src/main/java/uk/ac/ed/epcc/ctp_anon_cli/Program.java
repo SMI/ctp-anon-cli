@@ -22,7 +22,7 @@ public class Program {
       .builder("a")
       .argName("file")
       .hasArg()
-      .longOpt("anon")
+      .longOpt("anon-script")
       .desc("Anonymisation script")
       .required()
       .build();
@@ -34,7 +34,7 @@ public class Program {
       cli = parser.parse(options, args);
     } catch (ParseException e) {
       HelpFormatter formatter = new HelpFormatter();
-      formatter.printHelp("ctp-anon-cli", options);
+      formatter.printHelp("ctp-anon-cli.jar", options);
       System.exit(1);
     }
 
@@ -49,9 +49,9 @@ public class Program {
     List<String> files = cli.getArgList();
 
     if (files.size() == 0) {
-      System.err.println(
-        "Must provide either in-file out-file OR at least one in-file:out-file pair"
-      );
+      System.out.println("Usage:");
+      System.out.println("  Anonymise a single file: ctp-anon-cli.jar -a anon-script <src-file> <anon-file>");
+      System.out.println("  Anonymise multiple files: ctp-anon-cli.jar -a anon-script <src-file:anon-file>...");
       System.exit(1);
     }
 
