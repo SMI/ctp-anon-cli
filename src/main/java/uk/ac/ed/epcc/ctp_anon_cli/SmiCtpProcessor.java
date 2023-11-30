@@ -77,7 +77,6 @@ public class SmiCtpProcessor {
     return _lastStatus;
   }
 
-  @SuppressWarnings("unused")
   public CtpAnonymisationStatus anonymize(File inFile, File outFile) {
     if (inFile.canWrite()) {
       _lastStatus = "Input file " + inFile + " was writeable";

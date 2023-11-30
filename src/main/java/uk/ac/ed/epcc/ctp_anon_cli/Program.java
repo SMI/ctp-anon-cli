@@ -56,7 +56,7 @@ public class Program {
     }
 
     // TODO SRAnon
-    SmiCtpProcessor anonTool = new DicomAnonymizerToolBuilder()
+    SmiCtpProcessor anonymizer = new DicomAnonymizerToolBuilder()
       .tagAnonScriptFile(anonScriptFile)
       .check(null)
       //   .SRAnonTool(SRAnonTool)
@@ -120,8 +120,10 @@ public class Program {
     for (int i = 0; i < filePairsToProcess.size(); i += 2) {
       System.out.println("In:  " + filePairsToProcess.get(i));
       System.out.println("Out: " + filePairsToProcess.get(i + 1));
+      anonymizer.anonymize(
+        filePairsToProcess.get(i),
+        filePairsToProcess.get(i + 1)
+      );
     }
   }
-
-  private static void Anonymise() {}
 }
