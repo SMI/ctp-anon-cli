@@ -103,6 +103,16 @@ public class Program {
         System.exit(1);
       }
 
+      if (
+        filePairsToProcess.contains(inFile) ||
+        filePairsToProcess.contains(outFile)
+      ) {
+        System.err.println(
+          "Duplicate file pairs passed: '" + inFile + "' or '" + outFile + "'"
+        );
+        System.exit(1);
+      }
+
       filePairsToProcess.add(inFile);
       filePairsToProcess.add(outFile);
     }
