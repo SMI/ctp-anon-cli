@@ -113,6 +113,13 @@ public class SmiCtpProcessor {
       System.exit(1);
     }
 
+    if (!outFile.isFile()) {
+      System.err.println(
+        "DICOMAnonymizer returned OK but outFile does not exist"
+      );
+      System.exit(1);
+    }
+
     // Structured Reports have an additional anonymisation step
     if (!isSR) return;
 
