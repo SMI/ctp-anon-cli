@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: set-up JDK
         uses: actions/setup-java@v4
         with:
@@ -21,7 +21,7 @@ jobs:
           distribution: "temurin"
           cache: maven
       - name: clone ctp-anon-minimal
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: smi/ctp-anon-minimal
           path: ./ctp-anon-minimal
