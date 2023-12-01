@@ -21,7 +21,10 @@ jobs:
           distribution: "temurin"
           cache: maven
       - name: package
-        run: mvn -B -ntp package
+        env:
+          MVN_REPO_USERNAME: ${{ github.actor }}
+          MVN_REPO_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn -B -ntp --settings .github/workflows/settings.xml package
       - name: "upload jar"
         uses: actions/upload-artifact@v3
         with:
