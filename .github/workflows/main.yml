@@ -20,6 +20,16 @@ jobs:
           java-version: "8"
           distribution: "temurin"
           cache: maven
+      - name: clone ctp-anon-minimal
+        uses: actions/checkout@v2
+        with:
+          repository: smi/ctp-anon-minimal
+          path: ./ctp-anon-minimal
+      - name: install vendor deps
+        run: |
+          cd ./ctp-anon-minimal
+          ./scripts/build/01-reset-submodules.bash
+          ./scripts/build/06-install-vendor-deps.bash
       - name: package
         env:
           MVN_REPO_USERNAME: ${{ github.actor }}
