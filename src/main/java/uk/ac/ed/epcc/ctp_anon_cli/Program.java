@@ -59,11 +59,16 @@ public class Program {
     }
 
     // TODO SRAnon
-    SmiCtpProcessor anonymizer = new DicomAnonymizerToolBuilder()
-      .tagAnonScriptFile(anonScriptFile)
-      .check(null)
-      // .SRAnonTool(SRAnonTool)
-      .buildDat();
+    SmiCtpProcessor anonymizer = new SmiCtpProcessor(
+      anonScriptFile,
+      null,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    );
 
     if (
       files.size() == 2 &&
