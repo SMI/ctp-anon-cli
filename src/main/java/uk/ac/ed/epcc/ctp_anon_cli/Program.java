@@ -3,7 +3,6 @@ package uk.ac.ed.epcc.ctp_anon_cli;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -50,8 +49,12 @@ public class Program {
 
     if (files.size() == 0) {
       System.out.println("Usage:");
-      System.out.println("  Anonymise a single file: ctp-anon-cli.jar -a anon-script <src-file> <anon-file>");
-      System.out.println("  Anonymise multiple files: ctp-anon-cli.jar -a anon-script <src-file:anon-file>...");
+      System.out.println(
+        "  Anonymise a single file: ctp-anon-cli.jar -a anon-script <src-file> <anon-file>"
+      );
+      System.out.println(
+        "  Anonymise multiple files: ctp-anon-cli.jar -a anon-script <src-file:anon-file>..."
+      );
       System.exit(1);
     }
 
@@ -59,7 +62,7 @@ public class Program {
     SmiCtpProcessor anonymizer = new DicomAnonymizerToolBuilder()
       .tagAnonScriptFile(anonScriptFile)
       .check(null)
-      //   .SRAnonTool(SRAnonTool)
+      // .SRAnonTool(SRAnonTool)
       .buildDat();
 
     if (
@@ -67,10 +70,14 @@ public class Program {
       !files.get(0).contains(":") &&
       !files.get(1).contains(":")
     ) {
-      // Anon foo -> foo.anon and exit
-      System.err.println("TODO");
-      System.exit(1);
-      // System.exit(0);
+      File inFile = new File(files.get(0));
+      File outFile = new File(files.get(1));
+
+      ValidateFilePair(inFile, outFile);
+
+      anonymizer.anonymize(inFile, outFile);
+
+      System.exit(0);
     }
 
     List<File> filePairsToProcess = new ArrayList<File>();
@@ -86,22 +93,7 @@ public class Program {
       File inFile = new File(filePairSplit[0]);
       File outFile = new File(filePairSplit[1]);
 
-      if (outFile.equals(inFile)) {
-        System.err.println(
-          "in-file and out-file must be different: '" + filePairSplit[0] + "'"
-        );
-        System.exit(1);
-      }
-
-      if (!inFile.isFile()) {
-        System.err.println("in-file does not exist: '" + inFile + "'");
-        System.exit(1);
-      }
-
-      if (outFile.isFile()) {
-        System.err.println("out-file already exists: '" + outFile + "'");
-        System.exit(1);
-      }
+      ValidateFilePair(inFile, outFile);
 
       if (
         filePairsToProcess.contains(inFile) ||
@@ -124,6 +116,25 @@ public class Program {
         filePairsToProcess.get(i),
         filePairsToProcess.get(i + 1)
       );
+    }
+  }
+
+  private static void ValidateFilePair(File inFile, File outFile) {
+    if (outFile.equals(inFile)) {
+      System.err.println(
+        "in-file and out-file must be different: '" + inFile + "'"
+      );
+      System.exit(1);
+    }
+
+    if (!inFile.isFile()) {
+      System.err.println("in-file does not exist: '" + inFile + "'");
+      System.exit(1);
+    }
+
+    if (outFile.isFile()) {
+      System.err.println("out-file already exists: '" + outFile + "'");
+      System.exit(1);
     }
   }
 }

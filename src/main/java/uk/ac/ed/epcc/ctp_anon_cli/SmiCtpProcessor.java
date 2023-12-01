@@ -1,6 +1,5 @@
 package uk.ac.ed.epcc.ctp_anon_cli;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -19,8 +18,6 @@ import org.rsna.ctp.stdstages.anonymizer.dicom.Transcoder;
 
 public class SmiCtpProcessor {
 
-  //   private static final Logger _logger = Logger.getRootLogger();
-
   private static final String JPEGBaseline = "1.2.840.10008.1.2.4.50";
   private static final String JPEGLossLess = "1.2.840.10008.1.2.4.70";
 
@@ -28,17 +25,13 @@ public class SmiCtpProcessor {
   private boolean _recompress;
   private boolean _setBIRElement;
   private boolean _testmode;
-  private String _check;
   private String _SRAnonTool;
 
   private PixelScript _pixelScript;
-  private boolean performPixelAnon = false;
 
   private Properties _tagAnonScriptProps;
 
   private Transcoder _transcoder = new Transcoder();
-
-  private String _lastStatus;
 
   public SmiCtpProcessor(
     File tagAnonScriptFile,
@@ -54,17 +47,10 @@ public class SmiCtpProcessor {
     _recompress = recompress;
     _setBIRElement = setBIRElement;
     _testmode = testmode;
-    _check = check;
     _SRAnonTool = SRAnonTool;
 
     if (pixelAnonScriptFile != null) {
       _pixelScript = new PixelScript(pixelAnonScriptFile);
-
-      if (_pixelScript == null) throw new NullPointerException(
-        "Pixel script was null"
-      );
-
-      performPixelAnon = true;
     }
 
     _tagAnonScriptProps =
@@ -73,15 +59,11 @@ public class SmiCtpProcessor {
     _transcoder.setTransferSyntax(JPEGLossLess);
   }
 
-  public String getLastStatus() {
-    return _lastStatus;
-  }
-
-  public CtpAnonymisationStatus anonymize(File inFile, File outFile) {
+  public void anonymize(File inFile, File outFile) {
+    // NOTE(rkm 2023-12-01) This ensures CTP won't accidentally clobber the input file
     if (inFile.canWrite()) {
-      _lastStatus = "Input file " + inFile + " was writeable";
-      //   _logger.error(_lastStatus);
-      return CtpAnonymisationStatus.InputFileException;
+      System.err.println("Input file " + inFile + " was writeable");
+      System.exit(1);
     }
 
     DicomObject dObj = null;
@@ -90,26 +72,23 @@ public class SmiCtpProcessor {
     try {
       dObj = new DicomObject(inFile);
     } catch (Exception e) {
-      // _logger.error("Could not create dicom object from inFile", e);
-      _lastStatus = e.getMessage();
-      return CtpAnonymisationStatus.InputFileException;
+      System.err.println("Could not create dicom object from inFile: " + e);
+      System.exit(1);
     }
 
-    // _logger.debug("Anonymising " + inFile);
+    // See API https://github.com/johnperry/CTP/blob/master/source/java/org/rsna/ctp/objects/DicomObject.java
+    // See list of possible values for Modality https://www.dicomlibrary.com/dicom/modality/
+    boolean isSR = dObj.getElementValue("Modality").trim().equals("SR");
 
     // Run the DICOMPixelAnonymizer first before the elements used in signature
     // matching are modified by the DicomAnonymizer.
-    if (performPixelAnon && dObj.isImage()) {
+    if (_pixelScript != null && dObj.isImage()) {
       try {
         inFile = DoPixelAnon(inFile, outFile, dObj);
-      } catch (SmiAnonymisationException e) {
-        // _logger.error("Pixel anon failed", e);
-
-        _lastStatus = e.getMessage();
-        return CtpAnonymisationStatus.PixelAnonFailed;
+      } catch (Exception e) {
+        System.err.println("Pixel anon failed: " + e);
+        System.exit(1);
       }
-    } else {
-      // _logger.debug("Pixel anonymisation skipped");
     }
 
     // Ref:
@@ -125,103 +104,71 @@ public class SmiCtpProcessor {
     );
 
     if (!status.isOK()) {
-      //   _logger.error(
-      //     "DICOMAnonymizer returned status " +
-      //     status.getStatus() +
-      //     ", with message " +
-      //     status.getMessage()
-      //   );
-
-      _lastStatus = status.getStatus();
-      return CtpAnonymisationStatus.TagAnonFailed;
+      System.err.println(
+        "DICOMAnonymizer returned status " +
+        status.getStatus() +
+        ", with message " +
+        status.getMessage()
+      );
+      System.exit(1);
     }
-
-    if (_check != null) {
-      try {
-        DoChecks(outFile);
-      } catch (SmiAnonymisationException e) {
-        // _logger.error("Checking of output file failed", e);
-
-        _lastStatus = e.getMessage();
-        return CtpAnonymisationStatus.OutputFileChecksFailed;
-      }
-    }
-
-    // Re-open so we can check Modality
-    try {
-      dObj = new DicomObject(outFile);
-    } catch (Exception e) {
-      //   _logger.error("Could not create dicom object from outFile", e);
-      _lastStatus = e.getMessage();
-      return CtpAnonymisationStatus.InputFileException;
-    }
-
-    // See API https://github.com/johnperry/CTP/blob/master/source/java/org/rsna/ctp/objects/DicomObject.java
-    // See list of possible values for Modality https://www.dicomlibrary.com/dicom/modality/
-    boolean isSR = dObj.getElementValue("Modality").trim().equals("SR");
 
     // Structured Reports have an additional anonymisation step
-    if (isSR) {
-      String commandArray[] = {
-        _SRAnonTool,
-        "-i",
-        origFile.getAbsolutePath(),
-        "-o",
-        outFile.getAbsolutePath(),
-      };
+    if (!isSR) return;
 
-      String stderr;
-      int rc = -1;
+    String commandArray[] = {
+      _SRAnonTool,
+      "-i",
+      origFile.getAbsolutePath(),
+      "-o",
+      outFile.getAbsolutePath(),
+    };
 
-      try {
-        Process process = Runtime.getRuntime().exec(commandArray);
-        BufferedReader errorReader = new BufferedReader(
-          new InputStreamReader(process.getErrorStream())
-        );
-        stderr =
-          errorReader
-            .lines()
-            .collect(Collectors.joining(System.lineSeparator()));
-        errorReader.close();
-        process.waitFor();
-        rc = process.exitValue();
-        process.destroy();
-      } catch (Exception e) {
-        String msg = "SRAnonTool exec failed with '" + e.getMessage() + "'";
-        // _logger.error(msg);
-        _lastStatus = msg;
-        // TODO(rkm 2022-02-17) Add a more specific CtpAnonymisationStatus for "SRAnonTool failed"
-        return CtpAnonymisationStatus.InputFileException;
-      }
+    String stderr = null;
+    int rc = -1;
 
-      if (rc != 0) {
-        String msg =
-          "SRAnonTool exited with " + rc + " and stderr '" + stderr + "'";
-        // _logger.error(msg);
-        _lastStatus = msg;
-        return CtpAnonymisationStatus.TagAnonFailed;
-      }
+    try {
+      Process process = Runtime.getRuntime().exec(commandArray);
+      BufferedReader errorReader = new BufferedReader(
+        new InputStreamReader(process.getErrorStream())
+      );
+      stderr =
+        errorReader.lines().collect(Collectors.joining(System.lineSeparator()));
+      errorReader.close();
+      process.waitFor();
+      rc = process.exitValue();
+      process.destroy();
+    } catch (Exception e) {
+      // TODO(rkm 2022-02-17) Add a more specific CtpAnonymisationStatus for "SRAnonTool failed"
+      System.err.println(
+        "SRAnonTool exec failed with '" + e.getMessage() + "'"
+      );
+      System.exit(1);
     }
 
-    // _logger.debug("Anonymised file " + outFile);
-
-    _lastStatus = null;
-    return CtpAnonymisationStatus.Anonymised;
+    if (rc != 0) {
+      System.err.println(
+        "SRAnonTool exited with " + rc + " and stderr '" + stderr + "'"
+      );
+      System.exit(1);
+    }
   }
 
   private File DoPixelAnon(File inFile, File outFile, DicomObject dObj) {
     Signature signature = _pixelScript.getMatchingSignature(dObj);
 
     if (signature == null) {
-      //   _logger.debug("No signature found for pixel anonymization");
-      return inFile;
+      System.err.println("No signature found for pixel anonymization");
+      System.exit(1);
     }
 
     Regions regions = signature.regions;
 
     if (regions == null || regions.size() == 0) {
-      //   _logger.debug("No regions found for pixel anonymization in " + inFile);
-      return inFile;
+      System.err.println(
+        "No regions found for pixel anonymization in " + inFile
+      );
+      System.exit(1);
     }
 
     boolean decompressed = false;
@@ -235,16 +182,17 @@ public class SmiCtpProcessor {
         try {
           dObj = new DicomObject(outFile);
         } catch (Exception e) {
-          throw new SmiAnonymisationException(
-            "Exception creating DicomObject from " + outFile,
-            e
+          System.err.println(
+            "Could not create DicomObject from outFile '" + outFile + "'"
           );
+          System.exit(1);
         }
 
         decompressed = true;
       } else {
         outFile.delete();
-        throw new SmiAnonymisationException("Decompression failure");
+        System.err.println("Could not decompress outfile '" + outFile + "'");
+        System.exit(1);
       }
     }
 
@@ -260,45 +208,17 @@ public class SmiCtpProcessor {
 
     if (!status.isOK()) {
       outFile.delete();
-      throw new SmiAnonymisationException(
+      System.err.println(
         "Pixel anonymisation failure: " +
         status.getStatus() +
         "\n" +
         status.getMessage()
       );
+      System.exit(1);
     }
 
     if (decompressed && _recompress) _transcoder.transcode(outFile, outFile);
 
     return outFile;
-  }
-
-  private void DoChecks(File outFile) {
-    try {
-      DicomObject dObj = new DicomObject(outFile);
-
-      if (dObj.isImage()) {
-        int numberOfFrames = dObj.getNumberOfFrames();
-
-        if (numberOfFrames == 0) numberOfFrames++;
-
-        BufferedImage frame = null;
-
-        if (_check.equals("all")) {
-          for (int k = 0; k < numberOfFrames; k++) frame =
-            dObj.getBufferedImage(k, false);
-        } else if (_check.equals("") || _check.equals("last")) {
-          frame = dObj.getBufferedImage(numberOfFrames - 1, false);
-        } else if (_check.equals("first")) {
-          frame = dObj.getBufferedImage(0, false);
-        }
-
-        if (frame == null) throw new SmiAnonymisationException(
-          "Frame checking failed (a frame was null)"
-        );
-      }
-    } catch (Exception e) {
-      throw new SmiAnonymisationException("Frame checking failed", e);
-    }
   }
 }
