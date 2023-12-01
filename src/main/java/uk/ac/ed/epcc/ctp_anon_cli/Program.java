@@ -73,7 +73,7 @@ public class Program {
       File inFile = new File(files.get(0));
       File outFile = new File(files.get(1));
 
-      ValidateFilePair(inFile, outFile);
+      outFile = ValidateFilePair(inFile, outFile);
 
       anonymizer.anonymize(inFile, outFile);
 
@@ -93,7 +93,7 @@ public class Program {
       File inFile = new File(filePairSplit[0]);
       File outFile = new File(filePairSplit[1]);
 
-      ValidateFilePair(inFile, outFile);
+      outFile = ValidateFilePair(inFile, outFile);
 
       if (
         filePairsToProcess.contains(inFile) ||
@@ -119,7 +119,7 @@ public class Program {
     }
   }
 
-  private static void ValidateFilePair(File inFile, File outFile) {
+  private static File ValidateFilePair(File inFile, File outFile) {
     if (outFile.equals(inFile)) {
       System.err.println(
         "in-file and out-file must be different: '" + inFile + "'"
@@ -136,5 +136,13 @@ public class Program {
       System.err.println("out-file already exists: '" + outFile + "'");
       System.exit(1);
     }
+
+    // NOTE: DICOMAnonymizer doesn't handle outFiles without a prefix and attempts to
+    // write to "/" on Unix systems
+    if (outFile.getParent() == null) {
+      outFile = new File(outFile.getAbsolutePath());
+    }
+
+    return outFile;
   }
 }
