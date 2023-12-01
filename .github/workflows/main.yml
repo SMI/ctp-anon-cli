@@ -38,6 +38,6 @@ jobs:
       - name: "upload jar"
         uses: actions/upload-artifact@v3
         with:
-          name: "${{ github.event.repository.name }}-${{ github.sha }}.zip"
+          name: "${{ github.event.repository.name }}-${{ github.sha }}"
           path: target/ctp-anon-cli*.jar
           if-no-files-found: error
