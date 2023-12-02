@@ -10,9 +10,8 @@ Uses the [ctp-anon-minimal](https://github.com/SMI/ctp-anon-minimal) dependency.
 
 ## Usage
 
-Requires Java 8.
-
-Download the jar from the Releases, then run with `java -jar <jar>`
+Requires a Java JRE `>= 8`. Download a jar from the Releases, then run with
+`java -jar <jar>`
 
 Required arguments:
 
@@ -36,5 +35,10 @@ $ java -jar <jar> -a <anon-script> (<src-file>:<anon-file>)...
 
 Requirements:
 
--   Java 8 SDK
+-   Java 8 JDK
 -   Maven
+
+TODO:
+
+-   Github maven repo setup
+-   ctp-anon-minimal dependencies
