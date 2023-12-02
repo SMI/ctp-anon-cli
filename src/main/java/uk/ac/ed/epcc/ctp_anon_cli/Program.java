@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -38,6 +39,14 @@ public class Program {
         .build();
     options.addOption(option);
 
+    option =
+      Option
+        .builder("d")
+        .longOpt("daemonize")
+        .desc("Run as a daemon and wait for files to process")
+        .build();
+    options.addOption(option);
+
     CommandLineParser parser = new DefaultParser();
     CommandLine cli = null;
     try {
@@ -62,16 +71,21 @@ public class Program {
     );
 
     List<String> files = cli.getArgList();
+    boolean runAsDaemon = false;
 
     if (files.size() == 0) {
-      System.out.println("Usage:");
-      System.out.println(
-        "  Anonymise a single file: ctp-anon-cli.jar -a anon-script <src-file> <anon-file>"
-      );
-      System.out.println(
-        "  Anonymise multiple files: ctp-anon-cli.jar -a anon-script <src-file:anon-file>..."
-      );
-      System.exit(1);
+      if (cli.hasOption("d")) {
+        runAsDaemon = true;
+      } else {
+        System.out.println("Usage:");
+        System.out.println(
+          "  Anonymise a single file: ctp-anon-cli.jar -a anon-script <src-file> <anon-file>"
+        );
+        System.out.println(
+          "  Anonymise multiple files: ctp-anon-cli.jar -a anon-script <src-file:anon-file>..."
+        );
+        System.exit(1);
+      }
     }
 
     SmiCtpProcessor anonymizer = new SmiCtpProcessor(
@@ -85,6 +99,32 @@ public class Program {
       srAnonTool
     );
 
+    if (runAsDaemon) {
+      try (Scanner scanner = new Scanner(System.in)) {
+        while (true) {
+          String line = scanner.nextLine();
+          String[] filePairSplit = line.split(" ");
+
+          if (filePairSplit.length != 2) {
+            System.err.println("Expected two file paths");
+            continue;
+          }
+
+          try {
+            File inFile = new File(filePairSplit[0]);
+            File outFile = new File(filePairSplit[1]);
+
+            outFile = ValidateFilePair(inFile, outFile);
+
+            anonymizer.anonymize(inFile, outFile);
+          } catch (Exception e) {
+            System.err.println(e.getMessage());
+            continue;
+          }
+        }
+      }
+    }
+
     int rc = 0;
 
     if (
@@ -95,7 +135,12 @@ public class Program {
       File inFile = new File(files.get(0));
       File outFile = new File(files.get(1));
 
-      outFile = ValidateFilePair(inFile, outFile);
+      try {
+        outFile = ValidateFilePair(inFile, outFile);
+      } catch (Exception e) {
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
 
       rc = anonymizer.anonymize(inFile, outFile);
 
@@ -115,7 +160,12 @@ public class Program {
       File inFile = new File(filePairSplit[0]);
       File outFile = new File(filePairSplit[1]);
 
-      outFile = ValidateFilePair(inFile, outFile);
+      try {
+        outFile = ValidateFilePair(inFile, outFile);
+      } catch (Exception e) {
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
 
       if (
         filePairsToProcess.contains(inFile) ||
@@ -142,22 +192,20 @@ public class Program {
     System.exit(rc);
   }
 
-  private static File ValidateFilePair(File inFile, File outFile) {
+  private static File ValidateFilePair(File inFile, File outFile)
+    throws Exception {
     if (outFile.equals(inFile)) {
-      System.err.println(
+      throw new Exception(
         "in-file and out-file must be different: '" + inFile + "'"
       );
-      System.exit(1);
     }
 
     if (!inFile.isFile()) {
-      System.err.println("in-file does not exist: '" + inFile + "'");
-      System.exit(1);
+      throw new Exception("in-file does not exist: '" + inFile + "'");
     }
 
     if (outFile.isFile()) {
-      System.err.println("out-file already exists: '" + outFile + "'");
-      System.exit(1);
+      throw new Exception("out-file already exists: '" + outFile + "'");
     }
 
     // NOTE: DICOMAnonymizer doesn't handle outFiles without a prefix and attempts to

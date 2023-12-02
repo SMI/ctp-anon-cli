@@ -20,6 +20,7 @@ Required arguments:
     [here](https://github.com/johnperry/CTP/tree/master/source/files/profiles/dicom)
 -   `-s` / `--sr-anon-tool`: Path to the
     [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool)
+-   `-d` / `--daemonize`: Run as a daemon and wait for files to process
 
 To anonymise a single file:
 
@@ -32,6 +33,15 @@ To anonymise multiple files:
 ```console
 $ java -jar <jar> -a <anon-script> -s <sr-anon-tool> (<src-file>:<anon-file>)...
 ```
+
+To run as a daemon and process many files:
+
+```console
+$ java -jar <jar> -a <anon-script> -s <sr-anon-tool> -d
+```
+
+The application will then wait for lines of `<src-file> <anon-file>` pairs to
+process.
 
 ## Development
 
