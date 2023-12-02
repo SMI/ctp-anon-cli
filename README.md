@@ -20,6 +20,9 @@ Required arguments:
     [here](https://github.com/johnperry/CTP/tree/master/source/files/profiles/dicom)
 -   `-s` / `--sr-anon-tool`: Path to the
     [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool)
+
+Optional arguments:
+
 -   `-d` / `--daemonize`: Run as a daemon and wait for files to process
 
 To anonymise a single file:
