@@ -25,7 +25,7 @@ public class SmiCtpProcessor {
   private boolean _recompress;
   private boolean _setBIRElement;
   private boolean _testmode;
-  private String _SRAnonTool;
+  private File _srAnonTool;
 
   private PixelScript _pixelScript;
 
@@ -41,13 +41,13 @@ public class SmiCtpProcessor {
     boolean setBIRElement,
     boolean testmode,
     String check,
-    String SRAnonTool
+    File srAnonTool
   ) {
     _decompress = decompress;
     _recompress = recompress;
     _setBIRElement = setBIRElement;
     _testmode = testmode;
-    _SRAnonTool = SRAnonTool;
+    _srAnonTool = srAnonTool;
 
     if (pixelAnonScriptFile != null) {
       _pixelScript = new PixelScript(pixelAnonScriptFile);
@@ -132,7 +132,7 @@ public class SmiCtpProcessor {
     if (!isSR) return;
 
     String commandArray[] = {
-      _SRAnonTool,
+      _srAnonTool.getAbsolutePath(),
       "-i",
       origFile.getAbsolutePath(),
       "-o",

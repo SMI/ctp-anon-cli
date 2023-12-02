@@ -18,17 +18,19 @@ Required arguments:
 -   `-a` / `--anon-script`: Path to a CTP DICOM anonymizer script file. Samples
     can be found
     [here](https://github.com/johnperry/CTP/tree/master/source/files/profiles/dicom)
+-   `-s` / `--sr-anon-tool`: Path to the
+    [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool)
 
 To anonymise a single file:
 
 ```console
-$ java -jar <jar> -a <anon-script> <src-file> <anon-file>
+$ java -jar <jar> -a <anon-script> -s <sr-anon-tool> <src-file> <anon-file>
 ```
 
 To anonymise multiple files:
 
 ```console
-$ java -jar <jar> -a <anon-script> (<src-file>:<anon-file>)...
+$ java -jar <jar> -a <anon-script> -s <sr-anon-tool> (<src-file>:<anon-file>)...
 ```
 
 ## Development

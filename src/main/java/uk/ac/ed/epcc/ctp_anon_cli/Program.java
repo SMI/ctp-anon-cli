@@ -27,6 +27,17 @@ public class Program {
       .build();
     options.addOption(option);
 
+    option =
+      Option
+        .builder("s")
+        .argName("file")
+        .hasArg()
+        .longOpt("sr-anon-tool")
+        .desc("SR anonymisation tool")
+        .required()
+        .build();
+    options.addOption(option);
+
     CommandLineParser parser = new DefaultParser();
     CommandLine cli = null;
     try {
@@ -42,7 +53,12 @@ public class Program {
     );
 
     if (!anonScriptFile.isFile()) throw new IllegalArgumentException(
-      "Cannot find anonymisation script file: " + anonScriptFile.getPath()
+      "Cannot find anonymisation script file"
+    );
+
+    File srAnonTool = new File(Paths.get(cli.getOptionValue("s")).toString());
+    if (!srAnonTool.isFile()) throw new IllegalArgumentException(
+      "Cannot find SRAnonTool"
     );
 
     List<String> files = cli.getArgList();
@@ -58,7 +74,6 @@ public class Program {
       System.exit(1);
     }
 
-    // TODO SRAnon
     SmiCtpProcessor anonymizer = new SmiCtpProcessor(
       anonScriptFile,
       null,
@@ -67,7 +82,7 @@ public class Program {
       false,
       false,
       null,
-      null
+      srAnonTool
     );
 
     int rc = 0;
