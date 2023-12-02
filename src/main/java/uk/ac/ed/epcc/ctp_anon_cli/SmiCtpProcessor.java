@@ -59,11 +59,21 @@ public class SmiCtpProcessor {
     _transcoder.setTransferSyntax(JPEGLossLess);
   }
 
-  public void anonymize(File inFile, File outFile) {
+  public int anonymize(File inFile, File outFile) {
+    int rc = 0;
+    try {
+      anonymizeImpl(inFile, outFile);
+    } catch (Exception e) {
+      System.err.println("[" + inFile + ":" + outFile + "] " + e.getMessage());
+      rc = 1;
+    }
+    return rc;
+  }
+
+  public void anonymizeImpl(File inFile, File outFile) throws Exception {
     // NOTE(rkm 2023-12-01) This ensures CTP won't accidentally clobber the input file
     if (inFile.canWrite()) {
-      System.err.println("Input file " + inFile + " was writeable");
-      System.exit(1);
+      throw new Exception("Input file was writeable");
     }
 
     DicomObject dObj = null;
@@ -72,8 +82,9 @@ public class SmiCtpProcessor {
     try {
       dObj = new DicomObject(inFile);
     } catch (Exception e) {
-      System.err.println("Could not create dicom object from inFile: " + e);
-      System.exit(1);
+      throw new Exception(
+        "Could not create dicom object from inFile: " + e.getMessage()
+      );
     }
 
     // See API https://github.com/johnperry/CTP/blob/master/source/java/org/rsna/ctp/objects/DicomObject.java
@@ -86,8 +97,7 @@ public class SmiCtpProcessor {
       try {
         inFile = DoPixelAnon(inFile, outFile, dObj);
       } catch (Exception e) {
-        System.err.println("Pixel anon failed: " + e);
-        System.exit(1);
+        throw new Exception("Pixel anon failed: " + e);
       }
     }
 
@@ -104,20 +114,18 @@ public class SmiCtpProcessor {
     );
 
     if (!status.isOK()) {
-      System.err.println(
+      throw new Exception(
         "DICOMAnonymizer returned status " +
         status.getStatus() +
         ", with message " +
         status.getMessage()
       );
-      System.exit(1);
     }
 
     if (!outFile.isFile()) {
-      System.err.println(
+      throw new Exception(
         "DICOMAnonymizer returned OK but outFile does not exist"
       );
-      System.exit(1);
     }
 
     // Structured Reports have an additional anonymisation step
@@ -147,35 +155,30 @@ public class SmiCtpProcessor {
       process.destroy();
     } catch (Exception e) {
       // TODO(rkm 2022-02-17) Add a more specific CtpAnonymisationStatus for "SRAnonTool failed"
-      System.err.println(
+      throw new Exception(
         "SRAnonTool exec failed with '" + e.getMessage() + "'"
       );
-      System.exit(1);
     }
 
     if (rc != 0) {
-      System.err.println(
+      throw new Exception(
         "SRAnonTool exited with " + rc + " and stderr '" + stderr + "'"
       );
-      System.exit(1);
     }
   }
 
-  private File DoPixelAnon(File inFile, File outFile, DicomObject dObj) {
+  private File DoPixelAnon(File inFile, File outFile, DicomObject dObj)
+    throws Exception {
     Signature signature = _pixelScript.getMatchingSignature(dObj);
 
     if (signature == null) {
-      System.err.println("No signature found for pixel anonymization");
-      System.exit(1);
+      throw new Exception("No signature found for pixel anonymization");
     }
 
     Regions regions = signature.regions;
 
     if (regions == null || regions.size() == 0) {
-      System.err.println(
-        "No regions found for pixel anonymization in " + inFile
-      );
-      System.exit(1);
+      throw new Exception("No regions found for pixel anonymization in inFile");
     }
 
     boolean decompressed = false;
@@ -189,17 +192,13 @@ public class SmiCtpProcessor {
         try {
           dObj = new DicomObject(outFile);
         } catch (Exception e) {
-          System.err.println(
-            "Could not create DicomObject from outFile '" + outFile + "'"
-          );
-          System.exit(1);
+          throw new Exception("Could not create DicomObject from outFile");
         }
 
         decompressed = true;
       } else {
         outFile.delete();
-        System.err.println("Could not decompress outfile '" + outFile + "'");
-        System.exit(1);
+        throw new Exception("Could not decompress outfile");
       }
     }
 
@@ -215,13 +214,12 @@ public class SmiCtpProcessor {
 
     if (!status.isOK()) {
       outFile.delete();
-      System.err.println(
+      throw new Exception(
         "Pixel anonymisation failure: " +
         status.getStatus() +
         "\n" +
         status.getMessage()
       );
-      System.exit(1);
     }
 
     if (decompressed && _recompress) _transcoder.transcode(outFile, outFile);

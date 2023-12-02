@@ -70,6 +70,8 @@ public class Program {
       null
     );
 
+    int rc = 0;
+
     if (
       files.size() == 2 &&
       !files.get(0).contains(":") &&
@@ -80,9 +82,9 @@ public class Program {
 
       outFile = ValidateFilePair(inFile, outFile);
 
-      anonymizer.anonymize(inFile, outFile);
+      rc = anonymizer.anonymize(inFile, outFile);
 
-      System.exit(0);
+      System.exit(rc);
     }
 
     List<File> filePairsToProcess = new ArrayList<File>();
@@ -115,13 +117,14 @@ public class Program {
     }
 
     for (int i = 0; i < filePairsToProcess.size(); i += 2) {
-      System.out.println("In:  " + filePairsToProcess.get(i));
-      System.out.println("Out: " + filePairsToProcess.get(i + 1));
-      anonymizer.anonymize(
-        filePairsToProcess.get(i),
-        filePairsToProcess.get(i + 1)
-      );
+      rc =
+        anonymizer.anonymize(
+          filePairsToProcess.get(i),
+          filePairsToProcess.get(i + 1)
+        );
     }
+
+    System.exit(rc);
   }
 
   private static File ValidateFilePair(File inFile, File outFile) {
