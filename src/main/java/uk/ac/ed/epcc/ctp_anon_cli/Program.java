@@ -19,36 +19,32 @@ public class Program {
     Options options = new Options();
 
     Option option = Option
-      .builder("a")
-      .argName("file")
-      .hasArg()
-      .longOpt("anon-script")
-      .desc("Anonymisation script")
-      .required()
+      .builder("v")
+      .longOpt("version")
+      .desc("Print version info and exit")
       .build();
-    options.addOption(option);
-
-    option =
-      Option
-        .builder("s")
-        .argName("file")
-        .hasArg()
-        .longOpt("sr-anon-tool")
-        .desc("SR anonymisation tool")
-        .required()
-        .build();
-    options.addOption(option);
-
-    option =
-      Option
-        .builder("d")
-        .longOpt("daemonize")
-        .desc("Run as a daemon and wait for files to process")
-        .build();
     options.addOption(option);
 
     CommandLineParser parser = new DefaultParser();
     CommandLine cli = null;
+
+    try {
+      cli = parser.parse(options, args, true);
+    } catch (ParseException e) {
+      HelpFormatter formatter = new HelpFormatter();
+      formatter.printHelp("ctp-anon-cli.jar", AddRequiredOptions(options));
+      System.exit(1);
+    }
+
+    if (cli.hasOption("v")) {
+      System.out.println(
+        "ctp-anon-cli: " + Program.class.getPackage().getImplementationVersion()
+      );
+      System.exit(0);
+    }
+
+    options = AddRequiredOptions(options);
+
     try {
       cli = parser.parse(options, args);
     } catch (ParseException e) {
@@ -190,6 +186,39 @@ public class Program {
     }
 
     System.exit(rc);
+  }
+
+  private static Options AddRequiredOptions(Options options) {
+    Option option = Option
+      .builder("d")
+      .longOpt("daemonize")
+      .desc("Run as a daemon and wait for files to process")
+      .build();
+    options.addOption(option);
+
+    option =
+      Option
+        .builder("a")
+        .argName("file")
+        .hasArg()
+        .longOpt("anon-script")
+        .desc("Anonymisation script")
+        .required()
+        .build();
+    options.addOption(option);
+
+    option =
+      Option
+        .builder("s")
+        .argName("file")
+        .hasArg()
+        .longOpt("sr-anon-tool")
+        .desc("SR anonymisation tool")
+        .required()
+        .build();
+    options.addOption(option);
+
+    return options;
   }
 
   private static File ValidateFilePair(File inFile, File outFile)

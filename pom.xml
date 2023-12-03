@@ -59,6 +59,12 @@
               </descriptorRefs>
               <finalName>ctp-anon-cli-${project.version}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
+              <archive>
+                <manifest>
+                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                </manifest>
+              </archive>
             </configuration>
           </execution>
         </executions>
