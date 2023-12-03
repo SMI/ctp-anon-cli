@@ -42,7 +42,7 @@ jobs:
           path: target/ctp-anon-cli*.jar
           if-no-files-found: error
   release:
-    # if: contains(github.ref, 'refs/tags/v')
+    if: contains(github.ref, 'refs/tags/v')
     needs: [build]
     runs-on: ubuntu-latest
     steps:
@@ -50,11 +50,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: ./dist
-      - run: |
-          find ./dist -type f
-      # - name: upload release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: ./dist/*
-      #     fail_on_unmatched_files: true
-      #     generate_release_notes: true
+      - name: upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./dist/**/*.jar
+          fail_on_unmatched_files: true
+          generate_release_notes: true
