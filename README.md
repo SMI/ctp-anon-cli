@@ -15,15 +15,15 @@ Requires a Java JRE `>= 8`. Download a jar from the Releases, then run with
 
 Required arguments:
 
--   `-a` / `--anon-script`: Path to a CTP DICOM anonymizer script file. Samples
-    can be found
-    [here](https://github.com/johnperry/CTP/tree/master/source/files/profiles/dicom)
--   `-s` / `--sr-anon-tool`: Path to the
-    [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool)
+- `-a` / `--anon-script`: Path to a CTP DICOM anonymizer script file. Samples
+  can be found
+  [here](https://github.com/johnperry/CTP/tree/master/source/files/profiles/dicom)
+- `-s` / `--sr-anon-tool`: Path to the
+  [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool)
 
 Optional arguments:
 
--   `-d` / `--daemonize`: Run as a daemon and wait for files to process
+- `-d` / `--daemonize`: Run as a daemon and wait for files to process
 
 To anonymise a single file:
 
@@ -50,10 +50,10 @@ process.
 
 Requirements:
 
--   Java 8 JDK
--   Maven
+- Java 8 JDK
+- Maven
 
 TODO:
 
--   Github maven repo setup
--   ctp-anon-minimal dependencies
+- Github maven repo setup
+- ctp-anon-minimal dependencies
