@@ -52,8 +52,3 @@ Requirements:
 
 - Java 8 JDK
 - Maven
-
-TODO:
-
-- Github maven repo setup
-- ctp-anon-minimal dependencies
