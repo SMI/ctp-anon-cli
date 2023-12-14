@@ -8,7 +8,7 @@
   <name>CTP Anonymiser CLI</name>
   <groupId>uk.ac.ed.epcc</groupId>
   <artifactId>ctp_anon_cli</artifactId>
-  <version>0.1.0</version>
+  <version>0.3.0</version>
   <packaging>jar</packaging>
 
   <properties>
