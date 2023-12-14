@@ -129,7 +129,7 @@ public class SmiCtpProcessor {
     }
 
     // Structured Reports have an additional anonymisation step
-    if (!isSR) return;
+    if (!isSR || _srAnonTool == null) return;
 
     String commandArray[] = {
       _srAnonTool.getAbsolutePath(),

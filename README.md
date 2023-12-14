@@ -19,7 +19,7 @@ Required arguments:
   can be found
   [here](https://github.com/johnperry/CTP/tree/master/source/files/profiles/dicom)
 - `-s` / `--sr-anon-tool`: Path to the
-  [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool)
+  [SRAnonTool](https://github.com/SMI/SmiServices/tree/master/src/applications/SRAnonTool). Can be set to `false` if SR anonymisation is being performed elsewhere.
 
 Optional arguments:
 

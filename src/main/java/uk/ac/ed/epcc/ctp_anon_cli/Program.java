@@ -61,10 +61,14 @@ public class Program {
       "Cannot find anonymisation script file"
     );
 
-    File srAnonTool = new File(Paths.get(cli.getOptionValue("s")).toString());
-    if (!srAnonTool.isFile()) throw new IllegalArgumentException(
-      "Cannot find SRAnonTool"
-    );
+    File srAnonTool = null;
+    String srAnonToolPath = cli.getOptionValue("s");
+    if (!srAnonToolPath.toLowerCase().equals("false")) {
+      srAnonTool = new File(Paths.get(srAnonToolPath).toString());
+      if (!srAnonTool.isFile()) {
+        throw new IllegalArgumentException("Cannot find SRAnonTool");
+      }
+    }
 
     List<String> files = cli.getArgList();
     boolean runAsDaemon = false;
