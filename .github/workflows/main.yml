@@ -36,7 +36,7 @@ jobs:
           MVN_REPO_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: mvn -B -ntp --settings .github/workflows/settings.xml package
       - name: "upload jar"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ github.event.repository.name }}-${{ github.sha }}"
           path: target/ctp-anon-cli*.jar
