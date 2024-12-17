@@ -59,18 +59,7 @@ public class SmiCtpProcessor {
     _transcoder.setTransferSyntax(JPEGLossLess);
   }
 
-  public int anonymize(File inFile, File outFile) {
-    int rc = 0;
-    try {
-      anonymizeImpl(inFile, outFile);
-    } catch (Exception e) {
-      System.err.println("[" + inFile + ":" + outFile + "] " + e.getMessage());
-      rc = 1;
-    }
-    return rc;
-  }
-
-  public void anonymizeImpl(File inFile, File outFile) throws Exception {
+  public void anonymize(File inFile, File outFile) throws Exception {
     // NOTE(rkm 2023-12-01) This ensures CTP won't accidentally clobber the input file
     if (inFile.canWrite()) {
       throw new Exception("Input file was writeable");

@@ -107,26 +107,25 @@ public class Program {
           String[] filePairSplit = line.split(" ");
 
           if (filePairSplit.length != 2) {
-            System.err.println("Expected two file paths");
+            System.out.println("Expected two file paths");
             continue;
           }
 
+          File inFile = new File(filePairSplit[0]);
+          File outFile = new File(filePairSplit[1]);
+
           try {
-            File inFile = new File(filePairSplit[0]);
-            File outFile = new File(filePairSplit[1]);
 
             outFile = ValidateFilePair(inFile, outFile);
 
             anonymizer.anonymize(inFile, outFile);
           } catch (Exception e) {
-            System.err.println(e.getMessage());
+            System.out.println("[" + inFile + ":" + outFile + "] " + e.getMessage());
             continue;
           }
         }
       }
     }
-
-    int rc = 0;
 
     if (
       files.size() == 2 &&
@@ -143,9 +142,14 @@ public class Program {
         System.exit(1);
       }
 
-      rc = anonymizer.anonymize(inFile, outFile);
+      try {
+          anonymizer.anonymize(inFile, outFile);
+      } catch (Exception e) {
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
 
-      System.exit(rc);
+      System.exit(0);
     }
 
     List<File> filePairsToProcess = new ArrayList<File>();
@@ -183,14 +187,18 @@ public class Program {
     }
 
     for (int i = 0; i < filePairsToProcess.size(); i += 2) {
-      rc =
+      try {
         anonymizer.anonymize(
           filePairsToProcess.get(i),
           filePairsToProcess.get(i + 1)
         );
+      } catch (Exception e) {
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
     }
 
-    System.exit(rc);
+    System.exit(0);
   }
 
   private static Options AddRequiredOptions(Options options) {
