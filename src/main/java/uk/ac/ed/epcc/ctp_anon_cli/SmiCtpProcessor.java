@@ -129,7 +129,10 @@ public class SmiCtpProcessor {
     }
 
     // Structured Reports have an additional anonymisation step
-    if (!isSR || _srAnonTool == null) return;
+    if (!isSR || _srAnonTool == null) {
+        System.out.println("OK");
+        return;
+    }
 
     String commandArray[] = {
       _srAnonTool.getAbsolutePath(),
@@ -165,6 +168,8 @@ public class SmiCtpProcessor {
         "SRAnonTool exited with " + rc + " and stderr '" + stderr + "'"
       );
     }
+
+    System.out.println("OK");
   }
 
   private File DoPixelAnon(File inFile, File outFile, DicomObject dObj)
