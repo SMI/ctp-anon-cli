@@ -100,6 +100,7 @@ public class Program {
     );
 
     if (runAsDaemon) {
+      System.out.println("READY");
       try (Scanner scanner = new Scanner(System.in)) {
         while (true) {
           String line = scanner.nextLine();
